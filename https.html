@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check HTTPS and HTTP for Websites</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+        }
+        .list {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f8ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 4px;
+        }
+        .list h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .list ul li {
+            margin-bottom: 5px;
+        }
+        .clear-button {
+            margin-top: 10px;
+            background-color: #dc3545;
+        }
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Check HTTPS and HTTP for Websites</h1>
+
+        <!-- Test Area: Check Multiple Websites -->
+        <div class="input-group">
+            <label for="websites">Enter Websites (one per line):</label>
+            <textarea id="websites" placeholder="e.g.,&#10;example.com&#10;anotherwebsite.com"></textarea>
+        </div>
+
+        <!-- Button to Trigger Check -->
+        <button onclick="checkAllWebsites()">Check HTTPS and HTTP</button>
+
+        <!-- Result Area -->
+        <div id="result" class="result"></div>
+
+        <!-- List of Websites with HTTPS -->
+        <div id="https-list" class="list">
+            <h2>Websites with HTTPS:</h2>
+            <ul id="https-websites"></ul>
+        </div>
+
+        <!-- List of Websites with HTTP -->
+        <div id="http-list" class="list">
+            <h2>Websites with HTTP:</h2>
+            <ul id="http-websites"></ul>
+        </div>
+
+        <!-- Button to Clear Lists -->
+        <button onclick="clearLists()" class="clear-button">Clear Lists</button>
+    </div>
+
+    <script>
+        async function checkHttps(domain) {
+            const url = domain.startsWith('http') ? domain : `https://${domain}`;
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                if (response.ok && url.startsWith('https')) {
+                    return { domain, status: 'https' };
+                } else if (response.ok && url.startsWith('http')) {
+                    return { domain, status: 'http' };
+                } else {
+                    return { domain, status: 'error', message: `Status Code: ${response.status}` };
+                }
+            } catch (error) {
+                return { domain, status: 'error', message: error.message };
+            }
+        }
+
+        async function checkAllWebsites() {
+            const textarea = document.getElementById('websites');
+            const resultDiv = document.getElementById('result');
+            const httpsList = document.getElementById('https-websites');
+            const httpList = document.getElementById('http-websites');
+
+            // Clear previous results and lists
+            resultDiv.innerHTML = 'Checking...';
+            httpsList.innerHTML = '';
+            httpList.innerHTML = '';
+
+            const websites = textarea.value.trim().split('\n');
+
+            for (const website of websites) {
+                const domain = website.trim();
+                if (domain) {
+                    const result = await checkHttps(domain);
+                    if (result.status === 'https') {
+                        httpsList.innerHTML += `<li>${domain}</li>`;
+                    } else if (result.status === 'http') {
+                        httpList.innerHTML += `<li>${domain}</li>`;
+                    } else {
+                        resultDiv.innerHTML += `${domain} is not reachable or invalid ⚠️ (${result.message})<br>`;
+                    }
+                }
+            }
+
+            resultDiv.innerHTML = 'Check completed!';
+        }
+
+        function clearLists() {
+            const httpsList = document.getElementById('https-websites');
+            const httpList = document.getElementById('http-websites');
+            httpsList.innerHTML = '';
+            httpList.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
